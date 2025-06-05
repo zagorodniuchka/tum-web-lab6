@@ -1,7 +1,69 @@
-import { useEffect } from "react";
+import {useEffect, useState} from "react";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
+function ProductCard({ img, name, price }) {
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [cart, setCart] = useState(() => {
+        const savedCart = localStorage.getItem('cart');
+        return savedCart ? JSON.parse(savedCart) : [];
+    });
+
+    // Toggle favorite state
+    const toggleFavorite = () => {
+        setIsFavorited(!isFavorited);
+    };
+
+    // Add item to cart
+    const addToCart = () => {
+        const item = { img, name, price };
+        const updatedCart = [...cart, item];
+        setCart(updatedCart);
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        alert(`${name} added to cart!`);
+    };
+
+    return (
+        <div className="product-card">
+            <div className="product-image">
+                <img src={img} alt={name} />
+            </div>
+            <div className="product-info">
+                <h3>{name}</h3>
+                <p>{price}</p>
+                <div className="product-actions">
+                    <i
+                        className={`fas fa-heart ${isFavorited ? 'favorited' : ''}`}
+                        onClick={toggleFavorite}
+                        aria-hidden="true"
+                    ></i>
+                    <i
+                        className="fas fa-shopping-cart"
+                        onClick={addToCart}
+                        aria-hidden="true"
+                    ></i>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function App() {
+
+    const [cart, setCart] = useState(() => {
+        const savedCart = localStorage.getItem('cart');
+        return savedCart ? JSON.parse(savedCart) : [];
+    });
+
+    // Sync cart state with localStorage changes
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const savedCart = localStorage.getItem('cart');
+            setCart(savedCart ? JSON.parse(savedCart) : []);
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
+
     useEffect(() => {
         const mascot = document.querySelector(".mascot-container");
         setTimeout(() => {
@@ -97,22 +159,5 @@ export default function App() {
                 <p>© 2025 Plush Store. All rights reserved.</p>
             </footer>
         </>
-    );
-}
-
-function ProductCard({ img, name, price }) {
-    return (
-        <div className="product-card border p-4 rounded-lg shadow-md flex flex-col items-center">
-            <div className="product-image mb-2">
-                <img src={img} alt={name} className="w-full h-auto" />
-            </div>
-            <div className="product-info text-center">
-                <h3 className="font-semibold text-lg">{name}</h3>
-                <p className="text-sm text-gray-600">{price}</p>
-                <button className="mt-2 bg-purple-500 text-white px-4 py-1 rounded hover:bg-purple-600">
-                    Add to Cart
-                </button>
-            </div>
-        </div>
     );
 }
